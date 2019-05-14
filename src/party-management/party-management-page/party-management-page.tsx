@@ -3,11 +3,12 @@ import { AdventurerForm } from '../adventurer-form/adventurer-form';
 import { adventurerClasses } from '../models/adventurer-class/adventurer-classes.const';
 import { AdventurerRow } from '../adventurer-row/adventurer-row';
 import { Adventurer } from '../models/adventurer/adventurer.type';
-import { map, keyBy, memoize } from 'lodash-es';
+import { map, keyBy } from 'lodash-es';
 import { AdventurerClass } from '../models/adventurer-class/adventurer-class.type';
 import { connect } from 'react-redux';
 import { AppState } from '../../root.reducer';
 import { createAdventurer, deleteAdventurer, updateAdventurer } from '../actions/party.actions';
+import memoizeOne from 'memoize-one';
 
 interface Props {
   adventurers: Adventurer[];
@@ -23,7 +24,7 @@ interface State {
 
 class _PartyManagementPage extends React.PureComponent<Props, State> {
 
-  indexClasses = memoize((classes: AdventurerClass[]) => keyBy(classes, 'id'));
+  indexClasses = memoizeOne((classes: AdventurerClass[]) => keyBy(classes, 'id'));
 
   levelUpAdventurer = (adventurer: Adventurer) => {
     this.props.updateAdventurer({
