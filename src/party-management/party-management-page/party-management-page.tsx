@@ -3,33 +3,27 @@ import { AdventurerForm } from '../adventurer-form/adventurer-form';
 import { adventurerClasses } from '../models/adventurer-class/adventurer-classes.const';
 import { AdventurerRow } from '../adventurer-row/adventurer-row';
 import { Adventurer } from '../models/adventurer/adventurer.type';
-import { map, keyBy } from 'lodash-es';
+import { map, keyBy, memoize } from 'lodash-es';
 import { AdventurerClass } from '../models/adventurer-class/adventurer-class.type';
-import { Dictionary } from '../../utils/dictionary.type';
 import { connect } from 'react-redux';
 import { AppState } from '../../root.reducer';
 import { createAdventurer, deleteAdventurer, updateAdventurer } from '../actions/party.actions';
 
 interface Props {
   adventurers: Adventurer[];
+  adventurerClasses: AdventurerClass[];
+
   createAdventurer: typeof createAdventurer;
   deleteAdventurer: typeof deleteAdventurer;
   updateAdventurer: typeof updateAdventurer;
 }
 
 interface State {
-  adventurerClasses: AdventurerClass[];
-  classDict: Dictionary<AdventurerClass>;
 }
 
 class _PartyManagementPage extends React.PureComponent<Props, State> {
-  constructor(props: Props) {
-    super(props);
-    this.state = {
-      adventurerClasses: adventurerClasses, // TODO: get from store
-      classDict: keyBy(adventurerClasses, 'id'), // TODO: get from store
-    };
-  }
+
+  indexClasses = memoize((classes: AdventurerClass[]) => keyBy(classes, 'id'));
 
   levelUpAdventurer = (adventurer: Adventurer) => {
     this.props.updateAdventurer({
@@ -39,10 +33,11 @@ class _PartyManagementPage extends React.PureComponent<Props, State> {
   }
 
   render(): React.ReactNode {
+    const classDict = this.indexClasses(this.props.adventurerClasses);
     const rows = map(this.props.adventurers, (adventurer) => {
       return <AdventurerRow
         adventurer={adventurer}
-        classDict={this.state.classDict}
+        classDict={classDict}
         key={adventurer.id}
         onDelete={this.props.deleteAdventurer}
         onLevelUp={this.levelUpAdventurer}
@@ -63,9 +58,10 @@ class _PartyManagementPage extends React.PureComponent<Props, State> {
   }
 }
 
-const mapStateToProps = ({ partyState }: AppState) => {
+const mapStateToProps = ({ party, adventurerClasses }: AppState) => {
   return {
-    adventurers: partyState.adventurers,
+    adventurers: party.adventurers,
+    adventurerClasses: adventurerClasses.classes,
   };
 };
 
