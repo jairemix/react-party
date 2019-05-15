@@ -11,7 +11,9 @@
     "@types/react-dom": "^16.8.4",
     "@types/react-redux": "^7.0.9",
     "@types/redux-thunk": "^2.1.0",
+    "@types/yup": "^0.26.13",
     "core-js": "^3.0.1",
+    "formik": "^1.5.4",
     "lodash-es": "^4.17.11",
     "memoize-one": "^5.0.4",
     "react": "^16.8.6",
@@ -21,7 +23,8 @@
     "redux": "^4.0.1",
     "redux-thunk": "^2.3.0",
     "rxjs": "^6.5.2",
-    "typescript": "^3.4.5"
+    "typescript": "^3.4.5",
+    "yup": "^0.27.0"
   },
   "scripts": {
     "start": "react-scripts start",
