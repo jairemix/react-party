@@ -4,7 +4,7 @@ import { map } from 'lodash-es';
 import { AdventurerFormData } from '../models/adventurer/adventurer.type';
 import { Formik, FormikActions, Form, Field, FieldProps } from 'formik';
 import memoizeOne from 'memoize-one';
-import { string, object, number, setLocale } from 'yup';
+import { string, object, number } from 'yup';
 
 interface FormValues {
   name: string;

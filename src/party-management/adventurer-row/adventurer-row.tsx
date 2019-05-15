@@ -3,6 +3,7 @@ import { Adventurer } from '../models/adventurer/adventurer.type';
 import { AdventurerClass } from '../models/adventurer-class/adventurer-class.type';
 import { calcAdventurerClasses, calcAdventurerClassString, calcAdventurerHealth } from './calc-adventurer-stats';
 import { Dictionary } from '../../utils/dictionary.type';
+import memoizeOne from 'memoize-one';
 
 interface Props {
   adventurer: Adventurer;
@@ -15,11 +16,15 @@ interface State {}
 
 export class AdventurerRow extends React.PureComponent<Props, State> {
 
+  calcAdventurerClasses = memoizeOne(calcAdventurerClasses);
+  calcAdventurerClassString = memoizeOne(calcAdventurerClassString);
+  calcAdventurerHealth = memoizeOne(calcAdventurerHealth);
+
   render(): React.ReactNode {
 
-    const classes = calcAdventurerClasses(this.props.adventurer.classes, this.props.classDict);
-    const classString = calcAdventurerClassString(classes);
-    const health = calcAdventurerHealth(classes, this.props.adventurer.level);
+    const classes = this.calcAdventurerClasses(this.props.adventurer.classes, this.props.classDict);
+    const classString = this.calcAdventurerClassString(classes);
+    const health = this.calcAdventurerHealth(classes, this.props.adventurer.level);
 
     return (
       <div className="adventurer-row">
