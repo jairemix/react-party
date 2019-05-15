@@ -98,7 +98,7 @@ export function persistParty(): ThunkAction<Promise<void>, AppState, void, Party
         type: PartyActionsEnum.PersistParty,
       });
       const toPersist = omit(getState().party, ...nonPersistedKeys);
-      await partyService.setParty(toPersist);
+      await partyService.setParty(toPersist).toPromise();
       dispatch({
         type: PartyActionsEnum.PersistPartySuccess,
       });
