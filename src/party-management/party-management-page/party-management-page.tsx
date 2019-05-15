@@ -7,9 +7,8 @@ import { map, keyBy } from 'lodash-es';
 import { AdventurerClass } from '../models/adventurer-class/adventurer-class.type';
 import { connect } from 'react-redux';
 import { AppState } from '../../root.reducer';
-import { createAdventurerAndPersist, deleteAdventurerAndPersist, updateAdventurerAndPersist, loadParty, PartyAction } from '../actions/party.actions';
+import { createAdventurerAndPersist, deleteAdventurerAndPersist, updateAdventurerAndPersist, loadParty } from '../actions/party.actions';
 import memoizeOne from 'memoize-one';
-import { ThunkDispatch } from 'redux-thunk';
 
 interface Props {
   adventurers: Adventurer[];
