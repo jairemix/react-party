@@ -1,12 +1,11 @@
 import { Reducer } from 'redux';
 import { PartyState } from '../state/party.state';
 import { PartyAction, PartyActionsEnum } from '../actions/party.actions';
-import { defaultAdventurers } from '../models/adventurer/default-adventurers';
 import { filter, findIndex } from 'lodash-es';
 
 const initialPartyState: PartyState = {
-  adventurers: defaultAdventurers,
-  nextID: defaultAdventurers.length + 1,
+  adventurers: [],
+  nextID: 1,
   loaded: false,
 };
 
@@ -14,8 +13,62 @@ export const partyReducer: Reducer<PartyState, PartyAction> = (
   state = initialPartyState,
   action: PartyAction,
 ) => {
-  console.log('✔️ got action', action);
   switch (action.type) {
+
+    case PartyActionsEnum.LoadParty: {
+      return {
+        ...state,
+        loading: true,
+      };
+    }
+
+    case PartyActionsEnum.LoadPartySuccess: {
+      return {
+        ...action.party,
+        loaded: true,
+        loading: false,
+        loadError: null,
+        persisted: true,
+        persisting: false,
+        persistError: null,
+      };
+    }
+
+    case PartyActionsEnum.LoadPartyError: {
+      return {
+        ...state,
+        loadError: action.error,
+        loading: false,
+        loaded: false,
+      };
+    }
+
+    case PartyActionsEnum.PersistParty: {
+      return {
+        ...state,
+        persistError: null,
+        persisting: true,
+      };
+    }
+
+    case PartyActionsEnum.PersistPartySuccess: {
+      return {
+        ...state,
+        loaded: true,
+        persisting: false,
+        persisted: true,
+        persistError: null,
+      };
+    }
+
+    case PartyActionsEnum.PersistPartyError: {
+      return {
+        ...state,
+        persistError: action.error,
+        persisting: false,
+        persisted: false,
+      };
+    }
 
     case PartyActionsEnum.CreateAdventurer: {
       const adventurer = {
@@ -29,6 +82,7 @@ export const partyReducer: Reducer<PartyState, PartyAction> = (
           adventurer,
         ],
         nextID: state.nextID + 1,
+        persisted: false,
       };
     }
 
@@ -37,6 +91,7 @@ export const partyReducer: Reducer<PartyState, PartyAction> = (
       return {
         ...state,
         adventurers: filter(state.adventurers, adventurer => adventurer.id !== adventurerID),
+        persisted: false,
       };
     }
 
@@ -48,6 +103,7 @@ export const partyReducer: Reducer<PartyState, PartyAction> = (
       return {
         ...state,
         adventurers: newAdventurers,
+        persisted: false,
       };
     }
     

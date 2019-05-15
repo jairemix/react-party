@@ -7,16 +7,18 @@ import { map, keyBy } from 'lodash-es';
 import { AdventurerClass } from '../models/adventurer-class/adventurer-class.type';
 import { connect } from 'react-redux';
 import { AppState } from '../../root.reducer';
-import { createAdventurer, deleteAdventurer, updateAdventurer } from '../actions/party.actions';
+import { createAdventurerAndPersist, deleteAdventurerAndPersist, updateAdventurerAndPersist, loadParty, PartyAction } from '../actions/party.actions';
 import memoizeOne from 'memoize-one';
+import { ThunkDispatch } from 'redux-thunk';
 
 interface Props {
   adventurers: Adventurer[];
   adventurerClasses: AdventurerClass[];
 
-  createAdventurer: typeof createAdventurer;
-  deleteAdventurer: typeof deleteAdventurer;
-  updateAdventurer: typeof updateAdventurer;
+  loadParty: typeof loadParty;
+  createAdventurerAndPersist: typeof createAdventurerAndPersist;
+  deleteAdventurerAndPersist: typeof deleteAdventurerAndPersist;
+  updateAdventurerAndPersist: typeof updateAdventurerAndPersist;
 }
 
 interface State {
@@ -26,8 +28,14 @@ class _PartyManagementPage extends React.PureComponent<Props, State> {
 
   indexClasses = memoizeOne((classes: AdventurerClass[]) => keyBy(classes, 'id'));
 
+  constructor(props: Props) {
+    super(props);
+
+    this.props.loadParty();
+  }
+
   levelUpAdventurer = (adventurer: Adventurer) => {
-    this.props.updateAdventurer({
+    this.props.updateAdventurerAndPersist({
       ...adventurer,
       level: adventurer.level + 1,
     });
@@ -40,7 +48,7 @@ class _PartyManagementPage extends React.PureComponent<Props, State> {
         adventurer={adventurer}
         classDict={classDict}
         key={adventurer.id}
-        onDelete={this.props.deleteAdventurer}
+        onDelete={this.props.deleteAdventurerAndPersist}
         onLevelUp={this.levelUpAdventurer}
         />;
     });
@@ -52,7 +60,7 @@ class _PartyManagementPage extends React.PureComponent<Props, State> {
         </section>
         <section>
           <h2>Add a Party Member</h2>
-          <AdventurerForm adventurerClasses={adventurerClasses} onSubmit={this.props.createAdventurer} />
+          <AdventurerForm adventurerClasses={adventurerClasses} onSubmit={this.props.createAdventurerAndPersist} />
         </section>
       </div>
     );
@@ -67,16 +75,18 @@ const mapStateToProps = ({ party, adventurerClasses }: AppState) => {
 };
 
 /*
- * There is also a function form that allows for more customisation
+ * NOTE: This is is the simpler object form 
+ * There is a function form that allows for more customisation
  */
 const mapDispatchToProps = {
-  createAdventurer,
-  deleteAdventurer,
-  updateAdventurer,
+  loadParty,
+  createAdventurerAndPersist,
+  deleteAdventurerAndPersist,
+  updateAdventurerAndPersist,
 };
 
 /*
  * connect is an alternative to passing down the store as prop,
  * if null is passed instead of mapDispatchToProps, props will contain dispatch function
  */
-export const PartyManagementPage = connect(mapStateToProps, mapDispatchToProps)(_PartyManagementPage);
+export const PartyManagementPage = connect(mapStateToProps, mapDispatchToProps)(_PartyManagementPage as any);

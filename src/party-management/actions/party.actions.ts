@@ -1,5 +1,13 @@
-import { PartyState } from "../state/party.state";
-import { Adventurer, AdventurerFormData } from "../models/adventurer/adventurer.type";
+import { PartyState, defaultPartyState, nonPersistedKeys } from '../state/party.state';
+import { Adventurer, AdventurerFormData } from '../models/adventurer/adventurer.type';
+import { partyService } from '../services/party-service.instance';
+import { ThunkAction } from 'redux-thunk';
+import { AppState } from '../../root.reducer';
+import { omit } from 'lodash-es';
+import { dispatch } from 'rxjs/internal/observable/pairs';
+import { ActionCreator, Action } from 'redux';
+
+/* Actions */
 
 export enum PartyActionsEnum {
   LoadParty = '[Party Management] Load Party',
@@ -56,12 +64,77 @@ export interface DeleteAdventurerAction {
   adventurer: Adventurer;
 }
 
-export function createAdventurer(adventurerFormData: AdventurerFormData): CreateAdventurerAction {
+export type PartyAction = LoadPartyAction | LoadPartySuccessAction | LoadPartyErrorAction |
+  PersistPartyAction | PersistPartySuccessAction | PersistPartyErrorAction |
+  CreateAdventurerAction | UpdateAdventurerAction | DeleteAdventurerAction;
+
+/* Action Creators */
+
+export function loadParty(): ThunkAction<Promise<void>, AppState, void, PartyAction> { // uses thunk middlware
+  return async function (dispatch) {
+    try {
+      dispatch({
+        type: PartyActionsEnum.LoadParty,
+      });
+      const response = (await partyService.getParty().toPromise()) || defaultPartyState;
+      dispatch({
+        type: PartyActionsEnum.LoadPartySuccess,
+        party: response,
+      });
+    } catch (error) {
+      console.log('error', error);
+      dispatch({
+        type: PartyActionsEnum.LoadPartyError,
+        error,
+      });
+    }
+  };
+}
+
+export function persistParty(): ThunkAction<Promise<void>, AppState, void, PartyAction> {
+  return async function (dispatch, getState) {
+    try {
+      dispatch({
+        type: PartyActionsEnum.PersistParty,
+      });
+      const toPersist = omit(getState().party, ...nonPersistedKeys);
+      await partyService.setParty(toPersist);
+      dispatch({
+        type: PartyActionsEnum.PersistPartySuccess,
+      });
+    } catch (error) {
+      dispatch({
+        type: PartyActionsEnum.PersistPartyError,
+        error,
+      });
+    }
+  };
+}
+
+/**
+ * wraps action creator to add persist party call
+ */
+export function wrapActionCreatorToPersist<A extends Action, P extends any[]>(
+  actionCreator: (...params: P) => A,
+): (...params: P) => ThunkAction<Promise<void>, AppState, void, A> {
+  return function (...args: P) {
+    const action = actionCreator(...args)
+    const persistPartyThunk = persistParty();
+    return async function (dispatch, getState) {
+      dispatch(action);
+      return persistPartyThunk(dispatch, getState);
+    };
+  };
+}
+
+export function createAdventurer(adventurerFormData: AdventurerFormData): PartyAction {
   return {
     type: PartyActionsEnum.CreateAdventurer,
     adventurerFormData,
   };
 }
+
+export const createAdventurerAndPersist = wrapActionCreatorToPersist(createAdventurer);
 
 export function deleteAdventurer(adventurer: Adventurer): DeleteAdventurerAction {
   return {
@@ -70,6 +143,8 @@ export function deleteAdventurer(adventurer: Adventurer): DeleteAdventurerAction
   };
 }
 
+export const deleteAdventurerAndPersist = wrapActionCreatorToPersist(deleteAdventurer);
+
 export function updateAdventurer(adventurer: Adventurer): UpdateAdventurerAction {
   return {
     type: PartyActionsEnum.UpdateAdventurer,
@@ -77,6 +152,4 @@ export function updateAdventurer(adventurer: Adventurer): UpdateAdventurerAction
   };
 }
 
-export type PartyAction = LoadPartyAction | LoadPartySuccessAction | LoadPartyErrorAction |
-  PersistPartyAction | PersistPartySuccessAction | PersistPartyErrorAction |
-  CreateAdventurerAction | UpdateAdventurerAction | DeleteAdventurerAction;
+export const updateAdventurerAndPersist = wrapActionCreatorToPersist(updateAdventurer);

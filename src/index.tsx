@@ -1,3 +1,5 @@
+import './utils/polyfills';
+
 import { AppStore, configureAppStore } from './store';
 import { Provider } from 'react-redux';
 import React from 'react';
